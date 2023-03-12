@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 @author: Yixuan Shao
+# Edited very slightly to test usage with 3-channel RGB file
 Functions for the dispersive image formation model
 """
 
@@ -28,7 +29,7 @@ xyzbar = xyzbar / np.sum(xyzbar, axis=0)
 #                     [-0.091169, 0.25243, 0.015708],
 #                     [0.0009209, -0.0025498, 0.1786]])
 
-# Replaced with xyz2rgb for test camera. 
+# Replaced with xyz2rgb for the Nikon test camera. 
 # Later this should be pulled directly from the data
 xyz2rgb = np.array([[ 0.7309, -0.1403, -0.0519],
                     [-0.8474,  1.6008,  0.2622],

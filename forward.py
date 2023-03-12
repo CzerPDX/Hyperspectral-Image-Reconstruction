@@ -15,16 +15,25 @@ import matplotlib.pyplot as plt
 
 from scipy.io import loadmat
 
+originalImgChannels = 3
+
 # Convert hyperspectrum to XYZ color space based on CIE 1931
 xyzbar = loadmat('xyzbar.mat')
 xyzbar = xyzbar['xyzbar']
-xyzbar = xyzbar[0:31:1, :]
+xyzbar = xyzbar[0:originalImgChannels:1, :]
 xyzbar = xyzbar / np.sum(xyzbar, axis=0)
 
-# Conversion matrix between XYZ and RGB color space
-xyz2rgb = np.array([[0.41847, -0.15866, -0.082835],
-                    [-0.091169, 0.25243, 0.015708],
-                    [0.0009209, -0.0025498, 0.1786]])
+# # Conversion matrix between XYZ and RGB color space
+# xyz2rgb = np.array([[0.41847, -0.15866, -0.082835],
+#                     [-0.091169, 0.25243, 0.015708],
+#                     [0.0009209, -0.0025498, 0.1786]])
+
+# Replaced with xyz2rgb for test camera. 
+# Later this should be pulled directly from the data
+xyz2rgb = np.array([[ 0.7309, -0.1403, -0.0519],
+                    [-0.8474,  1.6008,  0.2622],
+                    [-0.2433,  0.2826,  0.8064]])
+
 
 def disperse(hsi):
     disperse_hsi = np.zeros(hsi.shape)

@@ -37,11 +37,16 @@ dispersedImgObj = DispersionImg(imgLocation, 512)
 # Print the information about the object to the console
 dispersedImgObj.printImageInformation()
 
-# Set the rgb_image to the smaller version so it's easier to process than full resolution.
-rgb_image = dispersedImgObj.smallerImg
+# Set the rgb_img to the smaller version so it's easier to process than full resolution.
+rgb_img = dispersedImgObj.smallerImg
+
+# # Rotate the image for testing
+# rgb_img = np.rot90(rgb_img, k=2, axes=(1,0))
+# plt.imshow(rgb_img)
+# plt.show()
 
 # Use the input RGB image data
-j = rgb_image.astype(float) / 255
+j = rgb_img.astype(float) / 255
 
 # h, w, 31 = j.shape # Height, width, and channels
 h, w, _ = j.shape
@@ -62,10 +67,15 @@ aligned_hsi = step1(j, h, w, c, alpha1=alpha1, beta1=beta1, rho1=rho1, rho2=rho2
 # Convert aligned hyperspectral image to RGB image
 aligned_img = hsi2rgb(aligned_hsi)
 
-# # Display the image that has gone through step1
-# plt.title('Aligned RGB after step1')
-# plt.imshow(aligned_rgb)
-# plt.show()
+
+# Display the image that has gone through step1
+plt.title('Aligned RGB after step1')
+plt.imshow(aligned_img)
+plt.show()
+
+# print(aligned_img.shape)
+# for matrix in aligned_img:
+#     print(matrix)
 
 # Obtain the edge of the aligned image
 edge = edgeDetect(aligned_img, ksize=3, sigma=0.5, percentile=92)

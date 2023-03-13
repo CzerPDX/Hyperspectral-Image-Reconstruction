@@ -33,7 +33,7 @@ import os
 
 # Normalize the path for whatever operating system
 imgLocation = os.path.normpath('DSC_5984.NEF')
-dispersedImgObj = DispersionImg(imgLocation)
+dispersedImgObj = DispersionImg(imgLocation, 512)
 # Print the information about the object to the console
 dispersedImgObj.printImageInformation()
 
@@ -43,7 +43,9 @@ rgb_image = dispersedImgObj.smallerImg
 # Use the input RGB image data
 j = rgb_image.astype(float) / 255
 
-h, w, c = j.shape # Height, width, and channels
+# h, w, 31 = j.shape # Height, width, and channels
+h, w, _ = j.shape
+c = 31
 
 # NEXT STEP: Write something to programmatically try different parameter values and combinations for step1
 # Step1: Align j into a non-dispersed image
@@ -54,59 +56,65 @@ rho2 = 1e-2
 num_iters = 10
 cg_iters = 10           # number of iterations for CG solver
 cg_tolerance = 1e-12    # convergence tolerance of cg solver
-aligned_rgb = step1(j, h, w, c, alpha1=alpha1, beta1=beta1, rho1=rho1, rho2=rho2,
+aligned_hsi = step1(j, h, w, c, alpha1=alpha1, beta1=beta1, rho1=rho1, rho2=rho2,
                     num_iters=num_iters, cg_iters=cg_iters, cg_tolerance=cg_tolerance)
 
-# Display the image that has gone through step1
-plt.title('Aligned RGB after step1')
-plt.imshow(aligned_rgb)
-plt.show()
+# Convert aligned hyperspectral image to RGB image
+aligned_img = hsi2rgb(aligned_hsi)
 
-# # Obtain the edge of the aligned image
-# edge = edgeDetect(aligned_rgb, ksize=3, sigma=0.5, percentile=92)
-# E = edge.sum() # Number of pixels in the edge
+# # Display the image that has gone through step1
+# plt.title('Aligned RGB after step1')
+# plt.imshow(aligned_rgb)
+# plt.show()
 
-# # Step2: Recover the gradient of the hyperspectral image with 
-# # respect to dispersion direction x 
-# alpha2 = 1e-3
-# beta2 = 1e-3
-# rho3 = 1e-2
-# num_iters = 10
-# cg_iters = 10           # number of iterations for CG solver
-# cg_tolerance = 1e-12    # convergence tolerance of cg solver
-# # Find the gradient of the hyperspectral image's edge pixels
-# vx = step2(j, edge, E, h, w, c, alpha2=alpha2, beta2=beta2, rho3=rho3,
-#            num_iters=num_iters, cg_iters=cg_iters, cg_tolerance=cg_tolerance)
-# # The gradient of the hyperspectral image in x direction
-# gx = Mb(vx, edge)
+# Obtain the edge of the aligned image
+edge = edgeDetect(aligned_img, ksize=3, sigma=0.5, percentile=92)
+E = int(Mf(aligned_hsi, edge).shape[0]) # N
 
-# # Step3: Recover hyperspectral image
-# alpha3 = 2e-2
-# beta3 = 1e-4
-# cg_iters = 100           # number of iterations for CG solver
-# cg_tolerance = 1e-12    # convergence tolerance of cg solver
-# reconstructed_rgb = step3(j, gx, h, w, c, alpha3=alpha3, beta3=beta3, 
-#                           cg_iters=cg_iters, cg_tolerance=cg_tolerance)
+# Step2: Recover the gradient of the hyperspectral image with 
+# respect to dispersion direction x 
+alpha2 = 1e-3
+beta2 = 1e-3
+rho3 = 1e-2
+num_iters = 10
+cg_iters = 10           # number of iterations for CG solver
+cg_tolerance = 1e-12    # convergence tolerance of cg solver
+# Find the gradient of the hyperspectral image's edge pixels
+vx = step2(j, edge, E, h, w, c, alpha2=alpha2, beta2=beta2, rho3=rho3,
+           num_iters=num_iters, cg_iters=cg_iters, cg_tolerance=cg_tolerance)
+# The gradient of the hyperspectral image in x direction
+gx = Mb(vx, edge, (h, w, c))
+
+# Step3: Recover hyperspectral image
+alpha3 = 2e-2
+beta3 = 1e-4
+cg_iters = 100           # number of iterations for CG solver
+cg_tolerance = 1e-12    # convergence tolerance of cg solver
+reconstructed_hsi = step3(j, gx, h, w, c, alpha3=alpha3, beta3=beta3, 
+                          cg_iters=cg_iters, cg_tolerance=cg_tolerance)
+
+# Clip the margin
+reconstructed_hsi = reconstructed_hsi[:, :-32, :]
+
+# Convert reconstructed hyperspectral image to RGB image
+recovered_img = hsi2rgb(reconstructed_hsi)
+recovered_img = np.clip(recovered_img, 0, 1)
 
 
+# Results
+plt.figure()
+plt.imshow(j)
+plt.axis('off')
+plt.savefig("result_czer_test/capturedRGBimage.png", bbox_inches='tight')
+plt.savefig("result_czer_test/capturedRGBimage.svg", dpi=300, format='svg',
+            bbox_inches='tight')
 
-# recovered_img = hsi2rgb(rgb_image)
-
-
-# # Results
-# plt.figure()
-# plt.imshow(j)
-# plt.axis('off')
-# plt.savefig("result_toy/capturedRGBimage.png", bbox_inches='tight')
-# plt.savefig("result_toy/capturedRGBimage.svg", dpi=300, format='svg',
-#             bbox_inches='tight')
-
-# plt.figure()
-# plt.imshow(recovered_img)
-# plt.axis('off')
-# plt.savefig("result_toy/recoveredRGBimage.png", bbox_inches='tight')
-# plt.savefig("result_toy/recoveredRGBimage.svg", dpi=300, format='svg',
-#             bbox_inches='tight')
+plt.figure()
+plt.imshow(recovered_img)
+plt.axis('off')
+plt.savefig("result_czer_test/recoveredRGBimage.png", bbox_inches='tight')
+plt.savefig("result_czer_test/recoveredRGBimage.svg", dpi=300, format='svg',
+            bbox_inches='tight')
 
 
 # PSNR = round(peak_signal_noise_ratio(recovered_img, j),2)

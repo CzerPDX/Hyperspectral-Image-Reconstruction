@@ -16,12 +16,10 @@ import matplotlib.pyplot as plt
 
 from scipy.io import loadmat
 
-originalImgChannels = 3
-
 # Convert hyperspectrum to XYZ color space based on CIE 1931
 xyzbar = loadmat('xyzbar.mat')
 xyzbar = xyzbar['xyzbar']
-xyzbar = xyzbar[0:originalImgChannels:1, :]
+xyzbar = xyzbar[0:31:1, :]
 xyzbar = xyzbar / np.sum(xyzbar, axis=0)
 
 # # Conversion matrix between XYZ and RGB color space

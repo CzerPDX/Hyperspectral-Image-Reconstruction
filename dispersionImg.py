@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 
 # Takes in a rawpy-compatible Raw dispersed image
 class DispersionImg:
-    def __init__(self, imgLocation):
+    def __init__(self, imgLocation, maxDimensionPx):
         self.imgError = None            # Whether or not there is an error in the image processing process
         self.imgLocation = None         # Image location on the computer
         self.rawImg = None              # Raw image as numpy array
         self.parameters = None          # Parameters taken from rawpy object
         self.processedImg = None        # Processed image from RAW image (often creates RGB) as numpy array
         self.smallerImg = None          # Smaller image for processing easier as numpy array
-        self.maxDimensionPx = 600       # Max in either dimension for smaller image
+        self.maxDimensionPx = maxDimensionPx       # Max in either dimension for smaller image
 
         # Save image information
         self.resetImg(imgLocation)
